@@ -38,11 +38,28 @@ void removeLineBreak(char *input)
     }
 }
 
+char * rotup(char *input, int length)
+{
+    char * output = malloc(length);
+    for (int i = 0; i < length; i++)
+    {
+        if(input[i] < 0x41 || input[i] > 0x5A) {
+            output[i] = '\0';
+            return output;
+        }
+        output[i] = (char)((((input[i] - 0x41) + 13) % 26) + 0x41);
+    }
+    return output;
+}
+
 int main(int argc, char **argv)
 {
     char input[128];
     fgets(input, 128, stdin);
     toUpperCase(input);
     removeLineBreak(input);
-    printf("Hallo: %s -- VATB", input);
+    printf("Hallo: %s -- ", input);
+    char * rotInput = rotup(input, 128);
+    printf("%s\n", rotInput);
+    return 0;
 }
