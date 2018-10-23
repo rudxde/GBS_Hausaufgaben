@@ -11,13 +11,15 @@ char charToUpperCase(char input)
     return input - 32;
 }
 
-void toUpperCase(char *input)
+char * toUpperCase(const char *input)
 {
     int length = strlen(input);
+    char *result = malloc(length);
     for (int i = 0; i < length; i++)
     {
-        input[i] = charToUpperCase(input[i]);
+        result[i] = charToUpperCase(input[i]);
     }
+    return result;
 }
 
 void removeLineBreak(char *input)
@@ -56,10 +58,12 @@ int main(int argc, char **argv)
 {
     char input[128];
     fgets(input, 128, stdin);
-    toUpperCase(input);
     removeLineBreak(input);
+    char *upperInput = toUpperCase(input);
     printf("Hallo: %s -- ", input);
-    char * rotInput = rotup(input, 128);
+    char * rotInput = rotup(upperInput, 128);
     printf("%s\n", rotInput);
+    free(upperInput);
+    free(rotInput);
     return 0;
 }
