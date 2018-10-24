@@ -55,7 +55,6 @@ void printLine(FILE *output, char *buffer, int length, int *pufferOffset, short 
     if(*pufferOffset > length) {
         *bufferEnded = TRUE;
     }
-    free(lineString);
 }
 
 /*
