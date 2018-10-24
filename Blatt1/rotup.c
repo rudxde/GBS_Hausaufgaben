@@ -3,6 +3,32 @@
 #include <unistd.h>
 #include <string.h>
 
+char charToUpperCase(char input);
+char * stringToUpperCase(const char *input, unsigned int length);
+void removeLineBreak(char *input, unsigned int length);
+char * rotup(char *input, unsigned int length);
+
+int main(int argc, char **argv)
+{
+    char input[128];
+    unsigned int inputLen = read(0, input, 128);
+    removeLineBreak(input, inputLen);
+    char * upperInput = stringToUpperCase(input, inputLen);
+    char * rotInput = rotup(upperInput, inputLen);
+
+    unsigned int outputLen = inputLen * 2 + 13; 
+    char * output = malloc(outputLen); 
+    sprintf(output, "Hallo: %s -- %s\n", input, rotInput);
+    write(1, output, outputLen);
+
+    free(upperInput);
+    free(rotInput);
+    free(output);
+    return 0;
+}
+
+
+
 char charToUpperCase(char input)
 {
     if (input < 97 || input > 122)
@@ -12,7 +38,7 @@ char charToUpperCase(char input)
     return input - 32;
 }
 
-char * toUpperCase(const char *input, unsigned int length)
+char * stringToUpperCase(const char *input, unsigned int length)
 {
     char *result = malloc(length);
     for (unsigned int i = 0; i < length; i++)
@@ -51,23 +77,4 @@ char * rotup(char *input, unsigned int length)
         output[i] = (char)((((input[i] - 0x41) + 13) % 26) + 0x41);
     }
     return output;
-}
-
-int main(int argc, char **argv)
-{
-    char input[128];
-    unsigned int inputLen = read(0, input, 128);
-    removeLineBreak(input, inputLen);
-    char *upperInput = toUpperCase(input, inputLen);
-    char * rotInput = rotup(upperInput, inputLen);
-
-    unsigned int outputLen = inputLen * 2 + 13; 
-    char * output = malloc(outputLen); 
-    sprintf(output, "Hallo: %s -- %s\n", input, rotInput);
-    write(1, output, outputLen);
-
-    free(upperInput);
-    free(rotInput);
-    free(output);
-    return 0;
 }
