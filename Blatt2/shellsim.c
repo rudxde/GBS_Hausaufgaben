@@ -13,8 +13,7 @@ int main(int argc, char **argv)
     while (TRUE)
     {
         fgets(input, 265, stdin);
-        int isEqual = strncmp(input, EXITCOMAND, EXITCOMANDLENGTH) == 0;
-        if (isEqual)
+        if (strncmp(input, EXITCOMAND, EXITCOMANDLENGTH) == 0)
         {
             break;
         }
