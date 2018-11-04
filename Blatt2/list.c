@@ -80,6 +80,11 @@ struct list_elem *list_append(list_t *list, char *data)
  **/
 int list_remove(list_t *list, struct list_elem *elem)
 {
+    if(list.first == elem){
+        list.first = list.first.next;
+        free(elem);
+        return 0;
+    }
     struct list_elem *actualListElement = list->first;
     while (actualListElement != NULL)
     {
