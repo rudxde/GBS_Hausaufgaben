@@ -80,19 +80,23 @@ struct list_elem *list_append(list_t *list, char *data)
  **/
 int list_remove(list_t *list, struct list_elem *elem)
 {
-    if(list.first == elem){
-        list.first = list.first.next;
+    // handle null params
+    if(list == NULL || elem  == NULL) {
+        return -1;
+    }
+    struct list_elem *actualListElement = list->first;
+    // first element should be removed
+    if (actualListElement == elem) {
+        list->first = actualListElement->next;
         free(elem);
         return 0;
     }
-    struct list_elem *actualListElement = list->first;
     while (actualListElement != NULL)
     {
         if (actualListElement->next == elem)
         {
-            struct list_elem *elementToDelete = actualListElement->next;
             actualListElement->next = actualListElement->next->next;
-            free(elementToDelete);
+            free(elem);
             return 0;
         }
         else
