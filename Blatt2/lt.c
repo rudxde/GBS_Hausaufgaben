@@ -41,7 +41,7 @@ int main(int argc, char *argv [], char *envp[]) {
 }
 
 stringcomprare(char const* _Str1, char const* _Str2) {
-    return strcmp(_Str1, _Str2) == 0;
+    return strcmp(_Str1, _Str2) == 0 ? 0 : - 1;
 }
 
 print_string(char * string) {

@@ -156,7 +156,7 @@ struct list_elem *list_find(list_t *list, char *data, int (*cmp_elem)(const char
     struct list_elem *actualListElement = list->first;
     while (actualListElement != NULL)
     {
-        char isSame = cmp_elem(data, actualListElement->data);
+        char isSame = cmp_elem(data, actualListElement->data) == 0;
         if(isSame) {
             return actualListElement;
         }
