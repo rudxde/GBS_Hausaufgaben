@@ -160,4 +160,5 @@ struct list_elem *list_find(list_t *list, char *data, int (*cmp_elem)(const char
         }
         actualListElement = actualListElement->next;
     }
+    return NULL;
 }
