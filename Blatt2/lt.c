@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "list.h"
 
 #define FALSE 0
 #define TRUE !FALSE
 
-print_string(char * string);
-stringcomprare(char const* _Str1, char const* _Str2);
+void print_string(char * string);
+int stringcomprare(char const* _Str1, char const* _Str2);
 
 int main(int argc, char *argv [], char *envp[]) {
     list_t * li;
@@ -36,14 +37,14 @@ int main(int argc, char *argv [], char *envp[]) {
             perror("'\n");
         }
     }
-    list_print(li, print_string);
+    list_print(li, (void *) print_string);
     exit(0);
 }
 
-stringcomprare(char const* _Str1, char const* _Str2) {
+int stringcomprare(char const* _Str1, char const* _Str2) {
     return strcmp(_Str1, _Str2) == 0 ? 0 : - 1;
 }
 
-print_string(char * string) {
+void print_string(char * string) {
     printf("%s", string);
 }
