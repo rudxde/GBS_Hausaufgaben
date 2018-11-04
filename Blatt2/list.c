@@ -122,6 +122,7 @@ void list_finit(list_t *list)
     }
     list->first = NULL;
     list->last = NULL;
+    free(list);
 }
 
 /*
