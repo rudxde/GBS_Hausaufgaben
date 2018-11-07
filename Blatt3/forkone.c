@@ -15,14 +15,14 @@ int main(int argc, char *argv[], char *envp[])
 {
     printDate("Start:");
     if(argc < 2) {
-        printf("needs parameter K");
+        printf("needs parameter K\n");
         exit(-1);
     }
     int K = atoi(argv[1]);
     int pid = fork();
     if (pid == -1)
     {
-        printf("childprocess could not be created!");
+        printf("childprocess could not be created!\n");
         exit(-1);
     }
     else if (pid == 0)
@@ -60,8 +60,7 @@ void child(int K)
 
 void printDate(char prefix[])
 {
-    time_t t = time(NULL);
-    struct tm tm = *localtime(&t);
-    // TODO: adapt date format
-    printf("%s %d-%d-%d %d:%d:%d\n", prefix, tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    time_t rawtime = time(NULL);
+    struct tm * timeinfo = localtime(&rawtime);
+    printf("%s %s", prefix, asctime(timeinfo));
 }
