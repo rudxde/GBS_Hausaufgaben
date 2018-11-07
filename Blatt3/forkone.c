@@ -41,7 +41,7 @@ void parent(int pid)
 {
     int exitCode = 0;
     wait(&exitCode);
-    printf("Exit-Code: %i\n", exitCode >> 8);
+    printf("Exit-Code: %i\n", WEXITSTATUS(exitCode));
     printDate("End:");
     exit(0);
 }
