@@ -56,7 +56,7 @@ int main(int argc, char **argv, char *envp[])
         else if (pid == 0)
         {
             // Im the child
-            child(K, countTo);
+            child(countTo);
         }
         int * pidPointer = malloc(sizeof(int));
         *pidPointer = pid;
@@ -76,7 +76,7 @@ int main(int argc, char **argv, char *envp[])
 }
 
 
-void child(int K, int countTo)
+void child(int countTo)
 {
     int myPid = getpid();
     int parentPid = getppid();
