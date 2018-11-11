@@ -42,7 +42,7 @@ void parent(int pid)
     int exitCode = 0;
     wait(&exitCode);
     printf("Exit-Code: %i\n", WEXITSTATUS(exitCode));
-    printDate("End:");
+    printDate("Ende:");
     exit(0);
 }
 
@@ -50,7 +50,7 @@ void child(int K)
 {
     int myPid = getpid();
     int parentPid = getppid();
-    for (unsigned i = 1; i <= 10; i++)
+    for (unsigned i = 1; i <= K; i++)
     {
         sleep(1);
         printf("%6i %6i %u\n", myPid, parentPid, i);
