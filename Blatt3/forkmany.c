@@ -12,7 +12,7 @@
 
 int main(int argc, char **argv, char *envp[]);
 void parent(int pid);
-void child(int K, int REnabled);
+void child(int REnabled);
 void printDate(char prefix[]);
 int randomNext(int min, int max);
 
