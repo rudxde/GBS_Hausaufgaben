@@ -71,7 +71,7 @@ int main(int argc, char **argv, char *envp[])
         list_remove(childList, childList->first);
     }
 
-    printDate("End:");
+    printDate("Ende:");
     exit(0);
 }
 
@@ -86,7 +86,7 @@ void child(int K, int countTo)
         sleep(1);
         printf("%6i %6i %u\n", myPid, parentPid, i);
     }
-    exit((myPid + K) % 100);
+    exit((myPid + countTo) % 100);
 }
 
 void printDate(char prefix[])
@@ -98,5 +98,5 @@ void printDate(char prefix[])
 
 int randomNext(int min, int max)
 {
-    return (rand() % (max - min + 1)) + min;
+    return (rand() % (max - min)) + min;
 }
