@@ -44,9 +44,10 @@ int main(int argc, char **argv, char *envp[])
     printDate("Start:");
 
     for (int i = 0; i < N; i++) {
-        int countTo = R ? randomNext(K / 2, 1.5 * K) : K;
+	int *countTo = malloc(sizeof(int));
+        *countTo = R ? randomNext(K / 2, 1.5 * K) : K;
         pthread_t *threadId = malloc(sizeof(pthread_t));
-	if (0 != (err = pthread_create(threadId, NULL, &child, &countTo))) {
+	if (0 != (err = pthread_create(threadId, NULL, &child, countTo))) {
 	    fprintf(stderr, "Failed to create thread.\n");
 	    exit(err);
         }
@@ -81,6 +82,7 @@ int *child(int *countTo)
     //I think we actually don't need to worry about the exit status this time, but whatever
     int *status = malloc(sizeof(int));
     *status = (threadId + *countTo) % 100;
+    free(countTo);
     return status;  //same as calling pthread_exit
 }
 
