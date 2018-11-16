@@ -1,16 +1,14 @@
+#include "list.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "list.h"
 
 /*
  * Initialisiert eine neue Liste und liefert einen Zeiger auf die Basisstruktur zurück.
  * Liefert einen Zeiger auf die Liste zurück oder NULL, falls ein Fehler aufgetreten ist.
  */
-list_t *list_init()
-{
+list_t *list_init() {
     list_t *newList = malloc(sizeof(list_t));
-    if (newList == NULL)
-    {
+    if (newList == NULL) {
         return NULL;
     }
     newList->first = NULL;
@@ -20,24 +18,20 @@ list_t *list_init()
 
 /*
  * Erzeugt ein neues Listenelement und fügt es am Beginn der Liste ein.
- * Liefert einen Zeiger auf das neue Listenelement zurück oder NULL, falls ein Fehler aufgetreten ist. 
+ * Liefert einen Zeiger auf das neue Listenelement zurück oder NULL, falls ein Fehler aufgetreten ist.
  **/
-struct list_elem *list_insert(list_t *list, list_data_t *data)
-{
-    if (list == NULL)
-    {
+struct list_elem *list_insert(list_t *list, list_data_t *data) {
+    if (list == NULL) {
         return NULL;
     }
     struct list_elem *newListElement = malloc(sizeof(struct list_elem));
-    if (newListElement == NULL)
-    {
+    if (newListElement == NULL) {
         return NULL;
     }
     newListElement->data = data;
     newListElement->next = list->first;
     list->first = newListElement;
-    if (list->last == NULL)
-    {
+    if (list->last == NULL) {
         list->last = newListElement;
     }
     return newListElement;
@@ -47,26 +41,21 @@ struct list_elem *list_insert(list_t *list, list_data_t *data)
  * Erzeugt ein neues Listenelement und fügt es am Ende der Liste ein.
  * Liefert einen Zeiger auf das neue Listenelement zurück oder NULL, falls ein Fehler aufgetreten ist.
  **/
-struct list_elem *list_append(list_t *list, list_data_t *data)
-{
-    if (list == NULL)
-    {
+struct list_elem *list_append(list_t *list, list_data_t *data) {
+    if (list == NULL) {
         return NULL;
     }
     struct list_elem *newListElement = malloc(sizeof(struct list_elem));
-    if (newListElement == NULL)
-    {
+    if (newListElement == NULL) {
         return NULL;
     }
     newListElement->data = data;
     newListElement->next = NULL;
-    if (list->last != NULL)
-    {
+    if (list->last != NULL) {
         list->last->next = newListElement;
     }
     list->last = newListElement;
-    if (list->first == NULL)
-    {
+    if (list->first == NULL) {
         list->first = newListElement;
     }
     return newListElement;
@@ -76,12 +65,11 @@ struct list_elem *list_append(list_t *list, list_data_t *data)
  * Durchsucht die Liste list von vorne und entfernt das Element list_elem, sofern es gefunden wird.
  * Die Datenstruktur von elem wird ebenfalls freigegeben, die eigentlichen Daten hingegen nicht,
  * denn es ist nicht bekannt, ob diese noch gebraucht werden oder überhaupt dynamisch alloziert wurden.
- * Liefert 0 zurück, wenn das Element gefunden wurde, andernfalls -1. 
+ * Liefert 0 zurück, wenn das Element gefunden wurde, andernfalls -1.
  **/
-int list_remove(list_t *list, struct list_elem *elem)
-{
+int list_remove(list_t *list, struct list_elem *elem) {
     // handle null params
-    if(list == NULL || elem  == NULL) {
+    if (list == NULL || elem == NULL) {
         return -1;
     }
     struct list_elem *actualListElement = list->first;
@@ -91,16 +79,12 @@ int list_remove(list_t *list, struct list_elem *elem)
         free(elem);
         return 0;
     }
-    while (actualListElement != NULL)
-    {
-        if (actualListElement->next == elem)
-        {
+    while (actualListElement != NULL) {
+        if (actualListElement->next == elem) {
             actualListElement->next = actualListElement->next->next;
             free(elem);
             return 0;
-        }
-        else
-        {
+        } else {
             actualListElement = actualListElement->next;
         }
     }
@@ -108,14 +92,12 @@ int list_remove(list_t *list, struct list_elem *elem)
 }
 
 /*
- * Entfernt alle Element aus der Liste und gibt die Basisdatenstruktur list frei. 
+ * Entfernt alle Element aus der Liste und gibt die Basisdatenstruktur list frei.
  **/
-void list_finit(list_t *list)
-{
+void list_finit(list_t *list) {
     struct list_elem *actualListElement = list->first;
     struct list_elem *nextListElement = list->first;
-    while (actualListElement != NULL)
-    {
+    while (actualListElement != NULL) {
         nextListElement = actualListElement->next;
         free(actualListElement);
         actualListElement = nextListElement;
@@ -126,14 +108,12 @@ void list_finit(list_t *list)
 /*
  * Geht die Elemente der Liste von vorne bis hinten durch und ruft für jedes Element die als zweiten Parameter
  * übergebene Funktion mit dem Argument data aus der Struktur struct list_elem auf. Für die Ausgabe werden die Elemente in
- * aufsteigender Reihefolge (beginnend bei 1) durchnumeriert. 
+ * aufsteigender Reihefolge (beginnend bei 1) durchnumeriert.
  **/
-void list_print(list_t *list, void (*print_elem)(list_data_t *))
-{
+void list_print(list_t *list, void (*print_elem)(list_data_t *)) {
     struct list_elem *actualListElement = list->first;
     unsigned counter = 1;
-    while (actualListElement != NULL)
-    {
+    while (actualListElement != NULL) {
         printf("%u:", counter++);
         print_elem(actualListElement->data);
         printf("\n");
@@ -149,14 +129,11 @@ void list_print(list_t *list, void (*print_elem)(list_data_t *))
  * Die Funktion muss also auf jedes Element der Liste und den übergebenen Parameter data jeweils die Vergleichsfunktion cmp_elem anwenden.
  * Eine Übereinstimmung liegt vor, wenn die Vergleichsfunktion 0 zurückliefert.
  **/
-struct list_elem *list_find(list_t *list, list_data_t *data, int (*cmp_elem)(const list_data_t *,
-			    const list_data_t *))
-{
+struct list_elem *list_find(list_t *list, list_data_t *data, int (*cmp_elem)(const list_data_t *, const list_data_t *)) {
     struct list_elem *actualListElement = list->first;
-    while (actualListElement != NULL)
-    {
+    while (actualListElement != NULL) {
         int isSame = cmp_elem(data, actualListElement->data) == 0;
-        if(isSame) {
+        if (isSame) {
             return actualListElement;
         }
         actualListElement = actualListElement->next;
