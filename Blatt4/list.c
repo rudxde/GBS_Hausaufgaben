@@ -20,7 +20,7 @@ list_t *list_init() {
  * Erzeugt ein neues Listenelement und fügt es am Beginn der Liste ein.
  * Liefert einen Zeiger auf das neue Listenelement zurück oder NULL, falls ein Fehler aufgetreten ist.
  **/
-struct list_elem *list_insert(list_t *list, list_data_t *data) {
+struct list_elem *list_insert(list_t *list, void *data) {
     if (list == NULL) {
         return NULL;
     }
@@ -41,7 +41,7 @@ struct list_elem *list_insert(list_t *list, list_data_t *data) {
  * Erzeugt ein neues Listenelement und fügt es am Ende der Liste ein.
  * Liefert einen Zeiger auf das neue Listenelement zurück oder NULL, falls ein Fehler aufgetreten ist.
  **/
-struct list_elem *list_append(list_t *list, list_data_t *data) {
+struct list_elem *list_append(list_t *list, void *data) {
     if (list == NULL) {
         return NULL;
     }
@@ -110,7 +110,7 @@ void list_finit(list_t *list) {
  * übergebene Funktion mit dem Argument data aus der Struktur struct list_elem auf. Für die Ausgabe werden die Elemente in
  * aufsteigender Reihefolge (beginnend bei 1) durchnumeriert.
  **/
-void list_print(list_t *list, void (*print_elem)(list_data_t *)) {
+void list_print(list_t *list, void (*print_elem)(void *)) {
     struct list_elem *actualListElement = list->first;
     unsigned counter = 1;
     while (actualListElement != NULL) {
@@ -129,7 +129,7 @@ void list_print(list_t *list, void (*print_elem)(list_data_t *)) {
  * Die Funktion muss also auf jedes Element der Liste und den übergebenen Parameter data jeweils die Vergleichsfunktion cmp_elem anwenden.
  * Eine Übereinstimmung liegt vor, wenn die Vergleichsfunktion 0 zurückliefert.
  **/
-struct list_elem *list_find(list_t *list, list_data_t *data, int (*cmp_elem)(const list_data_t *, const list_data_t *)) {
+struct list_elem *list_find(list_t *list, void *data, int (*cmp_elem)(const void *, const void *)) {
     struct list_elem *actualListElement = list->first;
     while (actualListElement != NULL) {
         int isSame = cmp_elem(data, actualListElement->data) == 0;

@@ -49,7 +49,7 @@ int main(int argc, char **argv, char *envp[]) {
             fprintf(stderr, "Failed to create thread.\n");
             exit(err);
         }
-        list_append(threadList, threadId);
+        list_append(threadList, (void *) threadId);
     }
     int *exitCode;
     while (threadList->first != NULL) {
