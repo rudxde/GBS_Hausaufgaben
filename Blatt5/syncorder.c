@@ -18,17 +18,22 @@
 
 int main(int argc, char **argv, char *envp[]);
 int *child(int *countTo);
+int write_buffer(long thread, char *buffer, int len);
 void assert(int beZero, char *msg);
 void lockOnMode(int forMode);
 void unlockOnMode(int forMode);
+void updateCondOnMode(int forMode, long nextThread);
 
 int mode = MODE_D;
-pthread_mutex_t mutex;
+pthread_mutex_t write_mutex, cond_mutex;
+
+pthread_cond_t cond;
+long currentThread = 0;
 
 int main(int argc, char **argv, char *envp[]) {
     int N = 1;
     int opt = 0;
-    while ((opt = getopt(argc, argv, "n:lf")) != -1) {
+    while ((opt = getopt(argc, argv, "n:lfo")) != -1) {
         switch (opt) {
             case 'n':
                 N = atoi(optarg);
@@ -44,9 +49,12 @@ int main(int argc, char **argv, char *envp[]) {
                 break;
         }
     }
-    pthread_mutex_init(&mutex, NULL);
+    pthread_mutex_init(&write_mutex, NULL);
+    pthread_mutex_init(&cond_mutex, NULL);
 
     list_t *threadList = list_init();
+
+    assert(pthread_cond_init(&cond, NULL), "Failed to create phtread conditional variable.\n");
 
     for (int i = 0; i < N; i++) {
         int *countTo = malloc(sizeof(int));
@@ -55,6 +63,7 @@ int main(int argc, char **argv, char *envp[]) {
         assert(pthread_create(threadId, NULL, (void *(*)(void *))child, countTo), "Failed to create thread.\n");
         list_append(threadList, (void *)threadId);
     }
+
     int *exitCode;
     while (threadList->first != NULL) {
         pthread_t *threadId = (pthread_t *)threadList->first->data;
@@ -67,7 +76,7 @@ int main(int argc, char **argv, char *envp[]) {
 
 int *child(int *k) {
     char fileName[64];
-    int fileContentBuffer[64];
+    char fileContentBuffer[64];
     unsigned fileContentBufferLength;
     int i = 0;
     sprintf(fileName, "%i.txt", *k);
@@ -77,16 +86,34 @@ int *child(int *k) {
         lockOnMode(MODE_L);
         char lineStart[10];
         sprintf(lineStart, "[%02d] %03d\t", *k, i);
-        write(STDOUT_FILENO, lineStart, 9);
-        write(STDOUT_FILENO, fileContentBuffer, fileContentBufferLength);
-        write(STDOUT_FILENO, "\n", 1);
+        write_buffer((long) *k, lineStart, 9);
+        write_buffer((long) *k, fileContentBuffer, fileContentBufferLength);
+        write_buffer((long) *k, "\n", 1);
         unlockOnMode(MODE_L);
         i++;
     }
     unlockOnMode(MODE_F);
+    updateCondOnMode(MODE_O, *k + 1);
     close(fd);
     free(k);
     return 0;
+}
+
+int write_buffer(long thread, char *buffer, int len) {
+    _Bool ready = mode != MODE_O;
+    while (!ready) {
+        printf("Thread %ld is trying to lock cond_mutex again.\n", thread);
+        assert(pthread_mutex_lock(&cond_mutex), "Failed to lock mutex before checking if it is this thread's turn to write.\n");
+        printf("Thread %ld successfully locked cond_mutex.\n", thread);
+        ready = (thread == currentThread);
+        if (!ready) {
+            assert(pthread_cond_wait(&cond, &cond_mutex), "Failed to wait for pthread condition.\n");
+            printf("Thread %ld has stopped watiing.\n", thread);
+        } else {
+            assert(pthread_mutex_unlock(&cond_mutex), "Failed to unlock mutex after checking if it is this thread's turn to write.\n");
+        }
+    }
+    return write(STDOUT_FILENO, buffer, len);
 }
 
 void assert(int beZero, char *msg) {
@@ -98,11 +125,22 @@ void assert(int beZero, char *msg) {
 
 void lockOnMode(int forMode) {
     if (forMode == mode) {
-        assert(pthread_mutex_lock(&mutex), "Failed to lock mutex! \n");
+        assert(pthread_mutex_lock(&write_mutex), "Failed to lock mutex for writing! \n");
     }
 }
 void unlockOnMode(int forMode) {
     if (forMode == mode) {
-        assert(pthread_mutex_unlock(&mutex), "Failed to unlock mutex!\n");
+        assert(pthread_mutex_unlock(&write_mutex), "Failed to unlock mutex for writing!\n");
+    }
+}
+
+void updateCondOnMode(int forMode, long nextThread) {
+    if (forMode == mode) {
+        assert(pthread_mutex_lock(&cond_mutex), "Failed to lock mutex before broadcasting to pthread_condition.\n");
+        printf("cond_mutex was locked.\n");
+        currentThread = nextThread;
+        assert(pthread_cond_broadcast(&cond), "Failed to broadcast to pthread condition.\n");
+        assert(pthread_mutex_unlock(&cond_mutex), "Failed to unlock mutex after broadcasting to pthread_condition.\n");
+        printf("cond_mutex was unlocked.\n");
     }
 }
