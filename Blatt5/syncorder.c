@@ -101,14 +101,13 @@ int *child(int *k) {
 
 int write_buffer(long thread, char *buffer, int len) {
     _Bool ready = mode != MODE_O;
-    while (!ready) {
-        printf("Thread %ld is trying to lock cond_mutex again.\n", thread);
+    if (!ready) {
         assert(pthread_mutex_lock(&cond_mutex), "Failed to lock mutex before checking if it is this thread's turn to write.\n");
-        printf("Thread %ld successfully locked cond_mutex.\n", thread);
+    }
+    while (!ready) {
         ready = (thread == currentThread);
         if (!ready) {
             assert(pthread_cond_wait(&cond, &cond_mutex), "Failed to wait for pthread condition.\n");
-            printf("Thread %ld has stopped watiing.\n", thread);
         } else {
             assert(pthread_mutex_unlock(&cond_mutex), "Failed to unlock mutex after checking if it is this thread's turn to write.\n");
         }
@@ -137,10 +136,8 @@ void unlockOnMode(int forMode) {
 void updateCondOnMode(int forMode, long nextThread) {
     if (forMode == mode) {
         assert(pthread_mutex_lock(&cond_mutex), "Failed to lock mutex before broadcasting to pthread_condition.\n");
-        printf("cond_mutex was locked.\n");
         currentThread = nextThread;
         assert(pthread_cond_broadcast(&cond), "Failed to broadcast to pthread condition.\n");
         assert(pthread_mutex_unlock(&cond_mutex), "Failed to unlock mutex after broadcasting to pthread_condition.\n");
-        printf("cond_mutex was unlocked.\n");
     }
 }
