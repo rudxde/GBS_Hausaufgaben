@@ -1,6 +1,6 @@
 all: parsertest mysh
 
-SOURCE=parsertest.c list.c list.h parser.c mysh.c
+SOURCE=parsertest.c list.c list.h parser.c mysh.c parser.h
 
 parsertest: parsertest.c parser.c list.c list.h
 	gcc -Wall parsertest.c parser.c list.c -o $@

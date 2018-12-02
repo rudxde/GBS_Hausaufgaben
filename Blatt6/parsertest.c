@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-// #include "list.h"
 #include "parser.h"
 
 #define FALSE 0
