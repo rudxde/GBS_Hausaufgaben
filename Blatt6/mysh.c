@@ -34,14 +34,14 @@ char ** list_to_array(list_t *list){
 }
 void parse_command(char **list, char *envp[]){
     char *commandpath = list[0];
-    char * command;
     //Explizite Kommandopfad Angabe
     if(strchr(commandpath, '/') != NULL){
         char * pointer = strrchr(commandpath, '/'); 
-        pointer[0] = NULL;
-        command = *pointer[1];
+        pointer[0] = '\0';
+        list[0] = pointer[1];
+        knowExecute(commandpath, list, envp);
     }else{
-        command = commandpath;
+        tryExecute(list, envp);
     }
 }
 
@@ -74,6 +74,6 @@ int main(int argc, char **argv, char *envp[]) {
         char **args = list_to_array(commandList);
         if (strncmp(args[0], "exit", 4) == 0) exit(0);
         char ** newArgv list_to_array(commandList);
-
+        parse_command(newArgv, envp);
     }
 }
