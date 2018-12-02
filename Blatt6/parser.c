@@ -162,7 +162,7 @@ void throwWrongVariableFormat() {
 char *getVariableValue(char *envp[], char name[]) {
     for (int i = 0; envp[i] != NULL; i++) {
         size_t arglen = strlen(envp[i]);
-        char varname[arglen];
+        char * varname = malloc(sizeof(char) * arglen);
         int j = 0;
         char current = envp[i][j];
         while ('=' != current) {
@@ -184,8 +184,10 @@ char *getVariableValue(char *envp[], char name[]) {
                 current = envp[i][j];
             }
             value[k] = '\0';
+            free(varname);
             return value;
         }
+        free(varname);
     }
     // no environment variable with the right name exists
     return NULL;  // TODO: reconsider, whether this is smart or not
