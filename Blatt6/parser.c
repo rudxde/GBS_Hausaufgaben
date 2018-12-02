@@ -156,5 +156,33 @@ void throwWongVariableFormat() {
 }
 
 char *getVariableValue(char *envp[], char name[]) {
-    // TODO
+    for (int i = 0; envp[i] != NULL; i++) {
+        size_t arglen = strlen(envp[i]);
+        char varname[arglen];
+        int j = 0;
+        char current = envp[i][j];
+        while ('=' != current) {
+            varname[j] = current;
+            j++;
+            current = envp[i][j];
+        }
+        varname[j] = '\0';
+        j++;
+
+        if (0 == strcmp(varname, name)) {  // we found the evironment variable with the right name
+            char* value = malloc(arglen * sizeof(char));  // TODO: make sure this is freed up at some point (should be fine though)
+            int k = 0;
+            current = envp[i][j];
+            while ('\0' != current) {
+                value[k] = current;
+                k++;
+                j++;
+                current = envp[i][j];
+            }
+            value[k] = '\0';
+            return value;
+        }
+    }
+    // no environment variable with the right name exists
+    return NULL;  // TODO: reconsider, whether this is smart or not
 }
