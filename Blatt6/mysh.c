@@ -68,8 +68,8 @@ int main(int argc, char **argv, char *envp[]) {
         printf("$ ");
         fgets(input, 1024, stdin);
         list_t *commandList = parse(input, envp);
+        if (strncmp((char *)commandList->first->data, "exit", 4) == 0) exit(0);
         char **args = list_to_array(commandList);
-        if (strncmp(args[0], "exit", 4) == 0) exit(0);
         parse_command(args, envp);
     }
 }
