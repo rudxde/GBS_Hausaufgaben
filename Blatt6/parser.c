@@ -19,11 +19,10 @@ list_t *parse(char *input, char *envp[]) {
             case '\n':
                 break;
             case '"':
-                // printf(">\" state: %u\n", state);
                 if (isState(state, parseState_default)) {
                     state |= parseState_doubleQuoted;
                 } else if (isState(state, parseState_escaped)) {
-                    state ^= ~parseState_escaped;
+                    state &= ~parseState_escaped;
                     stringInProgress[stringInProgressPointer++] = input[inputProgressPointer];
                 } else if (isState(state, parseState_variable)) {
                     state &= ~parseState_variable;
@@ -38,7 +37,6 @@ list_t *parse(char *input, char *envp[]) {
                     }
                 } else if (isState(state, parseState_doubleQuoted)) {
                     state &= ~parseState_doubleQuoted;
-                    printf("A");
                 } else {
                     stringInProgress[stringInProgressPointer++] = input[inputProgressPointer];
                 }
@@ -47,7 +45,7 @@ list_t *parse(char *input, char *envp[]) {
                 if (isState(state, parseState_default)) {
                     state |= parseState_singleQuoted;
                 } else if (isState(state, parseState_escaped)) {
-                    state ^= ~parseState_escaped;
+                    state &= ~parseState_escaped;
                     stringInProgress[stringInProgressPointer++] = input[inputProgressPointer];
                 } else if (isState(state, parseState_variable)) {
                     state &= ~parseState_variable;
@@ -68,7 +66,7 @@ list_t *parse(char *input, char *envp[]) {
                 break;
             case '$':
                 if (isState(state, parseState_escaped)) {
-                    state ^= ~parseState_escaped;
+                    state &= ~parseState_escaped;
                     stringInProgress[stringInProgressPointer++] = input[inputProgressPointer];
                 } else if (isState(state, parseState_variable)) {
                     state &= ~parseState_variable;
@@ -102,8 +100,10 @@ list_t *parse(char *input, char *envp[]) {
                 break;
             case ' ':
                 if (isState(state, parseState_default)) {
-                    stringInProgress[stringInProgressPointer++] = '\0';
-                    list_append(commandList, stringInProgress);
+                    if (stringInProgressPointer != 0) {
+                        stringInProgress[stringInProgressPointer++] = '\0';
+                        list_append(commandList, stringInProgress);
+                    }
                     stringInProgress = malloc(sizeof(char) * 1024);
                     stringInProgressPointer = 0;
                 } else if (isState(state, parseState_variable)) {
@@ -149,8 +149,10 @@ list_t *parse(char *input, char *envp[]) {
     unsigned variablenamelength = strlen(variableValue);
     stringInProgress = appendString(stringInProgress, stringInProgressPointer, variableValue, variablenamelength);
     stringInProgressPointer += variablenamelength;
-    stringInProgress[stringInProgressPointer++] = '\0';
-    list_append(commandList, stringInProgress);
+    if (stringInProgressPointer != 0) {
+        stringInProgress[stringInProgressPointer++] = '\0';
+        list_append(commandList, stringInProgress);
+    }
     return commandList;
 }
 
