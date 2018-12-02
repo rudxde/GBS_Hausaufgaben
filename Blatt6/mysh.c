@@ -23,11 +23,10 @@ char **list_to_array(list_t *list) {
     head = list->first;
     int i = 0;
     for (i = 0; i < length; i++) {
-        array[i] = (char *)head;
+        array[i] = (char *)head->data;
         head = head->next;
     }
     array[length] = NULL;
-
     return array;
 }
 void parse_command(char **list, char *envp[]) {
@@ -48,9 +47,11 @@ void tryExecute(char **argv, char *envp[]) {
     char *delimiter = ":";
     char *tryPath = strtok(path, delimiter);
     while (execve(tryPath, argv, envp) < 0) {
+        printf('\ttry: %s\n', tryPath);
         tryPath = strtok(NULL, delimiter);
         if (tryPath == NULL) {
             printf("cannot execute '%s'", argv[0]);
+            break;
         }
     }
 }
