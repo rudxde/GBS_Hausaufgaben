@@ -6,6 +6,10 @@
 #define FALSE 0
 #define TRUE !FALSE
 
+list_t *parse(char *input, char *envp[]);
+void throwWrongVariableFormat();
+char *getVariableValue(char *envp[], char name[]);
+
 typedef enum { commandtype_string, commandtype_var } commandType_t;
 
 typedef struct command {
@@ -52,7 +56,7 @@ list_t *parse(char *input, char *envp[]) {
                 else if (state == parseState_doubleQuoted)
                     state = parseState_default;
                 else if (state == parseState_variable)
-                    throwWongVariableFormat();
+                    throwWrongVariableFormat();
                 else {
                     stringInProgress[stringInProgressPointer++] = input[inputProgressPointer];
                 }
@@ -63,7 +67,7 @@ list_t *parse(char *input, char *envp[]) {
                 else if (state == parseState_singleQuoted)
                     state = parseState_default;
                 else if (state == parseState_variable)
-                    throwWongVariableFormat();
+                    throwWrongVariableFormat();
                 else {
                     stringInProgress[stringInProgressPointer++] = input[inputProgressPointer];
                 }
@@ -72,7 +76,7 @@ list_t *parse(char *input, char *envp[]) {
                 if (state == parseState_default)
                     state = parseState_variable;
                 else if (state == parseState_variable)
-                    throwWongVariableFormat();
+                    throwWrongVariableFormat();
                 else {
                     stringInProgress[stringInProgressPointer++] = input[inputProgressPointer];
                 }
@@ -85,7 +89,7 @@ list_t *parse(char *input, char *envp[]) {
                 else if (state == parseState_singleQuoted)
                     state = parseState_escaped_singleQuoted;
                 else if (state == parseState_variable)
-                    throwWongVariableFormat();
+                    throwWrongVariableFormat();
                 else if (state == parseState_escaped_default) {
                     state = parseState_default;
                     stringInProgress[stringInProgressPointer++] = input[inputProgressPointer];
@@ -150,7 +154,7 @@ list_t *parse(char *input, char *envp[]) {
     return commandList;
 }
 
-void throwWongVariableFormat() {
+void throwWrongVariableFormat() {
     printf("");
     exit(-1);
 }
