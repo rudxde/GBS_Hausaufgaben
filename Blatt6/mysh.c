@@ -30,7 +30,7 @@ void parse_command(char **list, char *envp[]){
     char * command;
     //Explizite Kommandopfad Angabe
     if(strchr(commandpath, '/') != NULL){
-        char * pointer = strrchr(commandpath, '/')[0] 
+        char * pointer = strrchr(commandpath, '/'); 
         pointer[0] = NULL;
         command = *pointer[1];
     }else{
