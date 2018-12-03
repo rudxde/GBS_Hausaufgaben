@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/wait.h>
 #include "parser.h"
 
 #define FALSE 0
@@ -29,13 +30,11 @@ char **list_to_array(list_t *list) {
     array[length] = NULL;
     return array;
 }
+
 void parse_command(char **list, char *envp[]) {
     char *commandpath = list[0];
     // Explizite Kommandopfad Angabe
     if (strchr(commandpath, '/') != NULL) {
-        char *pointer = strrchr(commandpath, '/');
-        pointer[0] = '\0';
-        list[0] = pointer[1];
         knowExecute(commandpath, list, envp);
     } else {
         tryExecute(list, envp);
@@ -46,20 +45,49 @@ void tryExecute(char **argv, char *envp[]) {
     char *path = getVariableValue(envp, "PATH");
     char *delimiter = ":";
     char *tryPath = strtok(path, delimiter);
-    while (execve(tryPath, argv, envp) < 0) {
-        printf('\ttry: %s\n', tryPath);
+    char *commandWithPath = malloc(sizeof(char) * 1024);
+    strcpy(commandWithPath, tryPath);
+    strcat(commandWithPath, "/");
+    strcat(commandWithPath, argv[0]);
+    int status;
+    do {
+        pid_t pid = fork();
+        if (0 == pid) {  // this is the child process -> execute the command
+            execve(commandWithPath, argv, envp);
+            exit(-1);
+        } 
+        // this is the parent process -> wait for the child process to finish 
+        if (0 > wait(&status))  {
+            fprintf(stderr, "An error has occured while waiting for a child thread.\n");
+            exit(-1);
+        }
         tryPath = strtok(NULL, delimiter);
         if (tryPath == NULL) {
-            printf("cannot execute '%s'", argv[0]);
-            break;
+            printf("cannot execute '%s'\n", argv[0]);
+            free(commandWithPath);
+            return;
         }
-    }
+        strcpy(commandWithPath, tryPath);
+        strcat(commandWithPath, "/");
+        strcat(commandWithPath, argv[0]);
+
+    } while (0 != WEXITSTATUS(status));
 }
 
 void knowExecute(char *path, char **argv, char *envp[]) {
-    if (execve(path, argv, envp) < 0) {
-        printf("cannot execute '%s'", argv[0]);
+    pid_t pid = fork();
+    if (0 == pid) {  // this is the child process -> execute the command
+        int status = execve(path, argv, envp);
+        if (0 > status) {
+            printf("cannot execute '%s'\n", argv[0]);
+        }
+        exit(status);
     }
+    if (0 > wait(NULL))  {
+        fprintf(stderr, "An error has occured while waiting for a child thread.\n");
+        exit(-1);
+    } 
+    return;
 }
 
 int main(int argc, char **argv, char *envp[]) {
