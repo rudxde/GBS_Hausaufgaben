@@ -98,6 +98,9 @@ int main(int argc, char **argv, char *envp[]) {
         printf("$ ");
         fgets(input, 1024, stdin);
         list_t *commandList = parse(input, envp);
+        if (NULL == commandList-> first) {
+            continue;
+        }
         if (strncmp((char *)commandList->first->data, "exit", 4) == 0) exit(0);
         char **args = list_to_array(commandList);
         parse_command(args, envp);
