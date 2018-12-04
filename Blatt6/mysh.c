@@ -91,6 +91,7 @@ void knowExecute(char *path, char **argv, char *envp[]) {
 }
 
 int main(int argc, char **argv, char *envp[]) {
+    setbuf(stdout, NULL);
     char input[1024];
 
     while (TRUE) {
