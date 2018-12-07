@@ -19,18 +19,13 @@ void knowExecute(char *path, char **argv, char *envp[]);
 int main(int argc, char **argv, char *envp[]);
 croco_t *crocodile(list_t *list);
 void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]);
-void executeComand(list_t * commandList, FILE inFile, FILE outFile, char *envp[]);
+void executeComand(list_t *commandList, FILE inFile, FILE outFile, char *envp[]);
 void plumbus(list_t *listO, char *envp[]);
 
-
-typedef enum {
-    none = -1;
-    crocoEatsStdIn = 0;
-    crocoEatsStdOut = 1;
-} crocoType_t;
+typedef enum { none = -1, crocoEatsStdIn = 0, crocoEatsStdOut = 1 } crocoType_t;
 
 typedef struct {
-    list_t *commandList;
+    char **commandList;
     crocoType_t type;
     char *fileName;
 } croco_t;
@@ -112,40 +107,40 @@ void knowExecute(char *path, char **argv, char *envp[]) {
     return;
 }
 
-croco_t * crocodile(list_t * list) {
-    list_elem_t head = list->first;
-    while(head->next-> != null){
-        if (strncmp((char *)head->next->data, ">", 1) || if (strncmp((char *)head->next->data, "<", 1))){
-            croco_t *croco = malloc(sizeof(croco_t));
-            if(strncmp((char *)head->next->data, ">", 1)){
-                croco->type = crocoEatsStdIn; 
-            }else{
-                croco->type = crocoEatsStdOut;
-            }
-            croco->fileName = head->next->next->data;
-            head->next = NULL;
-            list->last = head;
-            croco->commandList = list;
+croco_t *crocodile(char ** arr) {
+    croco_t croco = malloc(sizeof(croco_t));
+    int i = 0;
+    while (arr[i+1] != NULL) {
+        if (strncmp(arr[i], ">", 1)){
+            croco->type = crocoEatsStdIn;
+            croco->fileName = arr[i+1];
+            arr[i] = NULL;
+            croco->commandList = arr;
+            return croco;
+        }else if (strncmp(arr[i], "<", 1)) {
+            croco->fileName = arr[i+1];
+            arr[i] = NULL;
+            croco->type = crocoEatsStdOut;
+            croco->commandList = arr;
             return croco;
         }
     }
-    croco_t croco = malloc(sizeof(croco_t));
     croco->fileName = NULL;
-    croco->commandList = list;
+    croco->commandList = arr;
     croco->type = none;
+    return croco;
 }
 
 void plumbus(list_t *listO) {
     for (list_elem_t actualElement = listO->first; actualElement != NULL; actualElement = actualElement->next) {
         if (strncmp((char *)actualElement->next->data, "|", 1)) {
-            list_t * listA = list_init();
-            list_t * listB = list_init();
+            list_t *listA = list_init();
+            list_t *listB = list_init();
             listA->first = listO->first;
             listA->last = actualElement;
             actualElement->next = NULL;
             listB->first = actualElement->next->next;
             listB->last = listO->last;
-
 
             return;
         }
