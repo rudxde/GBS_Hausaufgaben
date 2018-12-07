@@ -21,7 +21,7 @@ void knowExecute(char *path, char **argv, char *envp[]);
 int main(int argc, char **argv, char *envp[]);
 croco_t *crocodile(char **list);
 void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]);
-void executeComand(char **commandList, FILE inFile, FILE outFile, char *envp[]);
+void executeCommand(char **commandList, int inFile, int outFile, char *envp[]);
 void plumbus(char **list, char *envp[]);
 void freeStringArray(char ** array);
 
@@ -100,7 +100,7 @@ croco_t *crocodile(char **arr) {
 }
 
 void plumbus(char **listO, char *envp[]) {
-    for (int i = 0; listO[i] != NULL; i++)) {
+    for (int i = 0; listO[i] != NULL; i++) {
         if (strncmp(listO[i], "|", 1)) {
             free(*listO[i]);
             listO[i] = NULL;
@@ -150,7 +150,7 @@ void executeCommand(char ** args, int inFile, int outFile) {
 }
 
 void freeStringArray(char ** array) {
-    for (int i = 0; array[i] != NULL; i++)) {
+    for (int i = 0; array[i] != NULL; i++) {
         free(*array[i]);
     }
 }
