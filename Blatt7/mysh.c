@@ -1,6 +1,8 @@
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include "parser.h"
@@ -17,10 +19,11 @@ char **list_to_array(list_t *list);
 void tryExecute(char **argv, char *envp[]);
 void knowExecute(char *path, char **argv, char *envp[]);
 int main(int argc, char **argv, char *envp[]);
-croco_t *crocodile(list_t *list);
+croco_t *crocodile(char **list);
 void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]);
-void executeComand(list_t *commandList, FILE inFile, FILE outFile, char *envp[]);
-void plumbus(list_t *listO, char *envp[]);
+void executeComand(char **commandList, FILE inFile, FILE outFile, char *envp[]);
+void plumbus(char **list, char *envp[]);
+void freeStringArray(char ** array);
 
 typedef enum { none = -1, crocoEatsStdIn = 0, crocoEatsStdOut = 1 } crocoType_t;
 
@@ -132,19 +135,61 @@ croco_t *crocodile(char **arr) {
     return croco;
 }
 
-void plumbus(list_t *listO) {
-    for (list_elem_t actualElement = listO->first; actualElement != NULL; actualElement = actualElement->next) {
-        if (strncmp((char *)actualElement->next->data, "|", 1)) {
-            list_t *listA = list_init();
-            list_t *listB = list_init();
-            listA->first = listO->first;
-            listA->last = actualElement;
-            actualElement->next = NULL;
-            listB->first = actualElement->next->next;
-            listB->last = listO->last;
-
+void plumbus(char **listO, char *envp[]) {
+    for (int i = 0; listO[i] != NULL; i++)) {
+        if (strncmp(listO[i], "|", 1)) {
+            free(*listO[i]);
+            listO[i] = NULL;
+            char **listB = &listO[i + 1];
+            croco_t *commandA = crocodile(listO);
+            croco_t *commandB = crocodile(listB);
+            openFiles(crocodile(listO), crocodile(listB), envp);
+            freeStringArray(listO);
+            freeStringArray(listB);
+            free(listO);
             return;
         }
+    }
+    openFiles(crocodile(listO), NULL, envp);
+    freeStringArray(listO);
+    free(listO);
+}
+
+void freeStringArray(char ** array) {
+    for (int i = 0; array[i] != NULL; i++)) {
+        free(*array[i]);
+    }
+}
+
+void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]) {
+    int exitCode = 0;
+    if (commandB == NULL) {
+        if (commandA->type == none) {
+            executeComand(commandA->commandList, -1, -1);
+        } else if (commandA->type == crocoEatsStdOut) {
+            FILE newFile = open(commandA->fileName, O_RDONLY);
+            executeComand(commandA->commandList, -1, newFile);
+        } else {
+            FILE newFile = open(commandA->fileName, O_WRONLY);
+            executeComand(commandA->commandList, -1, -1);
+        }
+        wait(&exitCode);
+    } else {
+        int *files = malloc(sizeof(int) * 2);
+        pipe(files, O_DIRECT);
+        int inFileA = -1;
+        int outFileB = -1;
+        if (commandA->type == crocoEatsStdIn) {
+            inFileA = open(commandA->fileName, O_RDONLY);
+        }
+        if (commandB->type == crocoEatsStdOut) {
+            outFileB = open(commandA->fileName, O_WRONLY);
+        }
+        executeComand(commandA->commandList, inFileA, files[0]);
+        executeComand(commandB->commandList, files[1], outFileB);
+        wait(&exitCode);
+        wait(&exitCode);
+        free(files);
     }
 }
 
