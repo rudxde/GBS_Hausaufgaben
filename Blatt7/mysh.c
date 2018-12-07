@@ -12,6 +12,7 @@ char **list_to_array(list_t *list);
 void tryExecute(char **argv, char *envp[]);
 void knowExecute(char *path, char **argv, char *envp[]);
 int main(int argc, char **argv, char *envp[]);
+croco_t * crocodile(list_t * list);
 
 typedef enum {
     none = -1,
@@ -101,6 +102,10 @@ void knowExecute(char *path, char **argv, char *envp[]) {
         exit(-1);
     }
     return;
+}
+
+croco_t * crocodile(list_t * list) {
+
 }
 
 void plumbus(list_t *listO) {
