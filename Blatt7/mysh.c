@@ -107,23 +107,24 @@ void knowExecute(char *path, char **argv, char *envp[]) {
     return;
 }
 
-croco_t *crocodile(char ** arr) {
+croco_t *crocodile(char **arr) {
     croco_t croco = malloc(sizeof(croco_t));
     int i = 0;
-    while (arr[i+1] != NULL) {
-        if (strncmp(arr[i], ">", 1)){
+    while (arr[i + 1] != NULL) {
+        if (strncmp(arr[i], ">", 1)) {
             croco->type = crocoEatsStdIn;
-            croco->fileName = arr[i+1];
+            croco->fileName = arr[i + 1];
             arr[i] = NULL;
             croco->commandList = arr;
             return croco;
-        }else if (strncmp(arr[i], "<", 1)) {
-            croco->fileName = arr[i+1];
+        } else if (strncmp(arr[i], "<", 1)) {
+            croco->fileName = arr[i + 1];
             arr[i] = NULL;
             croco->type = crocoEatsStdOut;
             croco->commandList = arr;
             return croco;
         }
+        i++;
     }
     croco->fileName = NULL;
     croco->commandList = arr;
