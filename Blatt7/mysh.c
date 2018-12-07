@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/wait.h>
+#include <unistd.h>
 #include "parser.h"
 
 #define FALSE 0
@@ -55,9 +55,9 @@ void tryExecute(char **argv, char *envp[]) {
         if (0 == pid) {  // this is the child process -> execute the command
             execve(commandWithPath, argv, envp);
             exit(-1);
-        } 
-        // this is the parent process -> wait for the child process to finish 
-        if (0 > wait(&status))  {
+        }
+        // this is the parent process -> wait for the child process to finish
+        if (0 > wait(&status)) {
             fprintf(stderr, "An error has occured while waiting for a child thread.\n");
             exit(-1);
         }
@@ -83,11 +83,21 @@ void knowExecute(char *path, char **argv, char *envp[]) {
         }
         exit(status);
     }
-    if (0 > wait(NULL))  {
+    if (0 > wait(NULL)) {
         fprintf(stderr, "An error has occured while waiting for a child thread.\n");
         exit(-1);
-    } 
+    }
     return;
+}
+
+void plumbus(list_t *list) {
+    for (list_elem_t actualElement = list->first; actualElement != NULL; actualElement = actualElement->next) {
+        if (strncmp((char *)actualElement->data, "|", 1)) {
+            list_t *  = list_init();
+
+            return;
+        }
+    }
 }
 
 int main(int argc, char **argv, char *envp[]) {
@@ -98,7 +108,7 @@ int main(int argc, char **argv, char *envp[]) {
         printf("$ ");
         fgets(input, 1024, stdin);
         list_t *commandList = parse(input, envp);
-        if (NULL == commandList-> first) {
+        if (NULL == commandList->first) {
             continue;
         }
         if (strncmp((char *)commandList->first->data, "exit", 4) == 0) exit(0);
