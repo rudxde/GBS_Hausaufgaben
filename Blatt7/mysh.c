@@ -23,11 +23,14 @@ void executeComand(list_t * commandList, FILE inFile, FILE outFile, char *envp[]
 void plumbus(list_t *listO, char *envp[]);
 
 
-typedef enum { none = -1, crocoEatsStdId = 0; crocoEatsStdOut = 1; }
-crocoType_t;
+typedef enum {
+    none = -1;
+    crocoEatsStdIn = 0;
+    crocoEatsStdOut = 1;
+} crocoType_t;
 
 typedef struct {
-    list_t commandList;
+    list_t *commandList;
     crocoType_t type;
     char *fileName;
 } croco_t;
@@ -110,7 +113,26 @@ void knowExecute(char *path, char **argv, char *envp[]) {
 }
 
 croco_t * crocodile(list_t * list) {
-
+    list_elem_t head = list->first;
+    while(head->next-> != null){
+        if (strncmp((char *)head->next->data, ">", 1) || if (strncmp((char *)head->next->data, "<", 1))){
+            croco_t *croco = malloc(sizeof(croco_t));
+            if(strncmp((char *)head->next->data, ">", 1)){
+                croco->type = crocoEatsStdIn; 
+            }else{
+                croco->type = crocoEatsStdOut;
+            }
+            croco->fileName = head->next->next->data;
+            head->next = NULL;
+            list->last = head;
+            croco->commandList = list;
+            return croco;
+        }
+    }
+    croco_t croco = malloc(sizeof(croco_t));
+    croco->fileName = NULL;
+    croco->commandList = list;
+    croco->type = none;
 }
 
 void plumbus(list_t *listO) {
