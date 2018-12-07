@@ -8,24 +8,29 @@
 #define FALSE 0
 #define TRUE !FALSE
 
+/**
+ * This is a crocodile: >°=,^=,^-... he likes to eat the greater number, or the std in/out of a file.
+ * This is a plumbus .|. it pipes pipes through pipes.
+ */
+
 char **list_to_array(list_t *list);
 void tryExecute(char **argv, char *envp[]);
 void knowExecute(char *path, char **argv, char *envp[]);
 int main(int argc, char **argv, char *envp[]);
-croco_t * crocodile(list_t * list);
+croco_t *crocodile(list_t *list);
+void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]);
+void executeComand(list_t * commandList, FILE inFile, FILE outFile, char *envp[]);
+void plumbus(list_t *listO, char *envp[]);
 
-typedef enum {
-    none = -1,
-    crocoEatsStdId = 0;
-    crocoEatsStdOut = 1;
-} crocoType_t;
+
+typedef enum { none = -1, crocoEatsStdId = 0; crocoEatsStdOut = 1; }
+crocoType_t;
 
 typedef struct {
     list_t commandList;
     crocoType_t type;
-    char * fileName;
+    char *fileName;
 } croco_t;
-
 
 char **list_to_array(list_t *list) {
     int length = 0;
