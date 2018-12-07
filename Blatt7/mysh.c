@@ -13,6 +13,19 @@ void tryExecute(char **argv, char *envp[]);
 void knowExecute(char *path, char **argv, char *envp[]);
 int main(int argc, char **argv, char *envp[]);
 
+typedef enum {
+    none = -1,
+    crocoEatsStdId = 0;
+    crocoEatsStdOut = 1;
+} crocoType_t;
+
+typedef struct {
+    list_t commandList;
+    crocoType_t type;
+    char * fileName;
+} croco_t;
+
+
 char **list_to_array(list_t *list) {
     int length = 0;
     list_elem_t *head = list->first;
@@ -90,10 +103,17 @@ void knowExecute(char *path, char **argv, char *envp[]) {
     return;
 }
 
-void plumbus(list_t *list) {
-    for (list_elem_t actualElement = list->first; actualElement != NULL; actualElement = actualElement->next) {
-        if (strncmp((char *)actualElement->data, "|", 1)) {
-            list_t *  = list_init();
+void plumbus(list_t *listO) {
+    for (list_elem_t actualElement = listO->first; actualElement != NULL; actualElement = actualElement->next) {
+        if (strncmp((char *)actualElement->next->data, "|", 1)) {
+            list_t * listA = list_init();
+            list_t * listB = list_init();
+            listA->first = listO->first;
+            listA->last = actualElement;
+            actualElement->next = NULL;
+            listB->first = actualElement->next->next;
+            listB->last = listO->last;
+
 
             return;
         }
