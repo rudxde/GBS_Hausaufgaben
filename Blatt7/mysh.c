@@ -15,16 +15,6 @@
  * This is a plumbus .|. it pipes pipes through pipes.
  */
 
-char **list_to_array(list_t *list);
-void tryExecute(char **argv, char *envp[]);
-void knowExecute(char *path, char **argv, char *envp[]);
-int main(int argc, char **argv, char *envp[]);
-croco_t *crocodile(char **list);
-void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]);
-void executeCommand(char **commandList, int inFile, int outFile, char *envp[]);
-void plumbus(char **list, char *envp[]);
-void freeStringArray(char ** array);
-
 typedef enum { none = -1, crocoEatsStdIn = 0, crocoEatsStdOut = 1 } crocoType_t;
 
 typedef struct {
@@ -32,6 +22,16 @@ typedef struct {
     crocoType_t type;
     char *fileName;
 } croco_t;
+
+char **list_to_array(list_t *list);
+void tryExecute(char **argv, char *envp[]);
+void knowExecute(char *path, char **argv, char *envp[]);
+int main(int argc, char **argv, char *envp[]);
+croco_t *crocodile(char **list);
+void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]);
+pid_t executeCommand(char **commandList, int inFile, int outFile, char *envp[]);
+void plumbus(char **list, char *envp[]);
+void freeStringArray(char ** array);
 
 char **list_to_array(list_t *list) {
     int length = 0;
@@ -64,7 +64,7 @@ void tryExecute(char **argv, char *envp[]) {
         tryPath = strtok(NULL, delimiter);
     }
     free(commandWithPath);
-    fprintf("Cannot execute '%s'.\n", argv[0]);
+    fprintf(stderr, "Cannot execute '%s'.\n", argv[0]);
     exit(-1);
 }
 
@@ -75,16 +75,16 @@ void knowExecute(char *path, char **argv, char *envp[]) {
 }
 
 croco_t *crocodile(char **arr) {
-    croco_t croco = malloc(sizeof(croco_t));
+    croco_t *croco = malloc(sizeof(croco_t));
     int i = 0;
-    while (arr[i + 1] != NULL) {
-        if (strncmp(arr[i], ">", 1)) {
+    while (arr[i] != NULL) {
+        if (strncmp(arr[i], "<", 1) == 0) {
             croco->type = crocoEatsStdIn;
             croco->fileName = arr[i + 1];
             arr[i] = NULL;
             croco->commandList = arr;
             return croco;
-        } else if (strncmp(arr[i], "<", 1)) {
+        } else if (strncmp(arr[i], ">", 1) == 0) {
             croco->fileName = arr[i + 1];
             arr[i] = NULL;
             croco->type = crocoEatsStdOut;
@@ -101,13 +101,13 @@ croco_t *crocodile(char **arr) {
 
 void plumbus(char **listO, char *envp[]) {
     for (int i = 0; listO[i] != NULL; i++) {
-        if (strncmp(listO[i], "|", 1)) {
-            free(*listO[i]);
+        if (strncmp(listO[i], "|", 1) == 0) {
+            free(listO[i]);
             listO[i] = NULL;
             char **listB = &listO[i + 1];
             croco_t *commandA = crocodile(listO);
             croco_t *commandB = crocodile(listB);
-            openFiles(crocodile(listO), crocodile(listB), envp);
+            openFiles(commandA, commandB, envp);
             freeStringArray(listO);
             freeStringArray(listB);
             free(listO);
@@ -118,40 +118,48 @@ void plumbus(char **listO, char *envp[]) {
     freeStringArray(listO);
     free(listO);
 }
-void executeCommand(char ** args, int inFile, int outFile) {
+
+pid_t executeCommand(char **args, int inFile, int outFile, char **envp) {
     pid_t pid = fork();
     if (0 > pid) {
-        fprintf("An error occured while trying to create a child process.\n");
+        fprintf(stderr, "An error occured while trying to create a child process.\n");
         exit(-1);
     }
     if (0 < pid) {  // this is the parent process --> there's nothing left to do
-        return;
+        return pid;
     }
     // this is the child process
 
     if (0 < inFile) {   // replace stdin with the input file 
-        if (stdin != dup(inFile)) {
-            fprintf("Failed to change input file of child process.\n");
+        close(0);
+        if (0 != dup(inFile)) {
+            fprintf(stderr, "Failed to change input file of child process.\n");
         }
+        close(inFile);
     }
     if (0 < outFile) {  // replace stdout with the output file
-        if (stdout != dup(outFile)) {
-            fprintf("Failed to change output file of child process.\n");
+        close(1);
+        if (1 != dup(outFile)) {
+            fprintf(stderr, "Failed to change output file of child process.\n");
         }
+        close(outFile);
     }
     
-    char *commandpath = list[0];
+    char *commandpath = args[0];
     // Explizite Kommandopfad Angabe
     if (strchr(commandpath, '/') != NULL) {
-        knowExecute(commandpath, list, envp);
+        knowExecute(commandpath, args, envp);
     } else {
-        tryExecute(list, envp);
+        tryExecute(args, envp);
     }
+    
+    //this will never happen, but this line is necessary to keep the compiler from printing a warning
+    return 0;
 }
 
 void freeStringArray(char ** array) {
     for (int i = 0; array[i] != NULL; i++) {
-        free(*array[i]);
+        free(array[i]);
     }
 }
 
@@ -159,30 +167,37 @@ void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]) {
     int exitCode = 0;
     if (commandB == NULL) {
         if (commandA->type == none) {
-            executeComand(commandA->commandList, -1, -1);
-        } else if (commandA->type == crocoEatsStdOut) {
-            FILE newFile = open(commandA->fileName, O_RDONLY);
-            executeComand(commandA->commandList, -1, newFile);
+            executeCommand(commandA->commandList, -1, -1, envp);
+        } else if (commandA->type == crocoEatsStdIn) {
+            int newFile = open(commandA->fileName, O_RDONLY);
+            if (0 > newFile) {
+                fprintf(stderr, "Could not open file '%s'.\n", commandA->fileName);
+            }
+            executeCommand(commandA->commandList, newFile, -1, envp);
         } else {
-            FILE newFile = open(commandA->fileName, O_WRONLY);
-            executeComand(commandA->commandList, -1, -1);
+            int newFile = open(commandA->fileName, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+            if (0 > newFile) {
+                fprintf(stderr, "Could not open file '%s'.\n", commandA->fileName);
+            }
+            executeCommand(commandA->commandList, -1, newFile, envp);
         }
         wait(&exitCode);
     } else {
         int *files = malloc(sizeof(int) * 2);
-        pipe(files, O_DIRECT);
+        pipe(files);
         int inFileA = -1;
         int outFileB = -1;
         if (commandA->type == crocoEatsStdIn) {
             inFileA = open(commandA->fileName, O_RDONLY);
         }
         if (commandB->type == crocoEatsStdOut) {
-            outFileB = open(commandA->fileName, O_WRONLY);
+            outFileB = open(commandA->fileName, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
         }
-        executeComand(commandA->commandList, inFileA, files[0]);
-        executeComand(commandB->commandList, files[1], outFileB);
-        wait(&exitCode);
-        wait(&exitCode);
+        pid_t pidA = executeCommand(commandA->commandList, inFileA, files[1], envp);
+        pid_t pidB = executeCommand(commandB->commandList, files[0], outFileB, envp);
+        waitpid(pidA, &exitCode, 0);
+        close(files[1]);
+        waitpid(pidB, &exitCode, 0);
         free(files);
     }
 }
@@ -200,6 +215,6 @@ int main(int argc, char **argv, char *envp[]) {
         }
         if (strncmp((char *)commandList->first->data, "exit", 4) == 0) exit(0);
         char **args = list_to_array(commandList);
-        parse_command(args, envp);
+        plumbus(args, envp);
     }
 }
