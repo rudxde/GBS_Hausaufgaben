@@ -29,7 +29,7 @@ void knowExecute(char *path, char **argv, char *envp[]);
 int main(int argc, char **argv, char *envp[]);
 croco_t *crocodile(char **list);
 void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]);
-pid_t executeCommand(char **commandList, int inFile, int outFile, char *envp[]);
+pid_t executeCommand(char **commandList, int inFile, int outFile, int fileToClose, char *envp[]);
 void plumbus(char **list, char *envp[]);
 void freeStringArray(char ** array);
 
@@ -119,7 +119,7 @@ void plumbus(char **listO, char *envp[]) {
     free(listO);
 }
 
-pid_t executeCommand(char **args, int inFile, int outFile, char **envp) {
+pid_t executeCommand(char **args, int inFile, int outFile, int fileToClose, char **envp) {
     pid_t pid = fork();
     if (0 > pid) {
         fprintf(stderr, "An error occured while trying to create a child process.\n");
@@ -129,6 +129,10 @@ pid_t executeCommand(char **args, int inFile, int outFile, char **envp) {
         return pid;
     }
     // this is the child process
+
+    if (0 < fileToClose) {
+        close(fileToClose);
+    } 
 
     if (0 < inFile) {   // replace stdin with the input file 
         close(0);
@@ -167,21 +171,21 @@ void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]) {
     int exitCode = 0;
     if (commandB == NULL) {
         if (commandA->type == none) {
-            executeCommand(commandA->commandList, -1, -1, envp);
+            executeCommand(commandA->commandList, -1, -1, -1, envp);
         } else if (commandA->type == crocoEatsStdIn) {
             int newFile = open(commandA->fileName, O_RDONLY);
             if (0 > newFile) {
                 fprintf(stderr, "Could not open file '%s'.\n", commandA->fileName);
                 return;
             }
-            executeCommand(commandA->commandList, newFile, -1, envp);
+            executeCommand(commandA->commandList, newFile, -1, -1,  envp);
         } else {
             int newFile = open(commandA->fileName, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
             if (0 > newFile) {
                 fprintf(stderr, "Could not open file '%s'.\n", commandA->fileName);
                 return;
             }
-            executeCommand(commandA->commandList, -1, newFile, envp);
+            executeCommand(commandA->commandList, -1, newFile, -1, envp);
         }
         wait(&exitCode);
     } else {
@@ -195,11 +199,12 @@ void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]) {
         if (commandB->type == crocoEatsStdOut) {
             outFileB = open(commandA->fileName, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
         }
-        pid_t pidA = executeCommand(commandA->commandList, inFileA, files[1], envp);
-        pid_t pidB = executeCommand(commandB->commandList, files[0], outFileB, envp);
+        pid_t pidA = executeCommand(commandA->commandList, inFileA, files[1], files[0], envp);
+        pid_t pidB = executeCommand(commandB->commandList, files[0], outFileB, files[1], envp);
         waitpid(pidA, &exitCode, 0);
         close(files[1]);
         waitpid(pidB, &exitCode, 0);
+        close(files[0]);
         free(files);
     }
 }
