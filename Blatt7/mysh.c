@@ -168,34 +168,38 @@ void freeStringArray(char ** array) {
 void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]) {
     int exitCode = 0;
     if (commandB == NULL) {
-        if (commandA->type == none) {
-            executeCommand(commandA->commandList, -1, -1, -1, envp);
-        } else if (commandA->type == crocoEatsStdIn) {
-            int newFile = open(commandA->fileName, O_RDONLY);
-            if (0 > newFile) {
-                fprintf(stderr, "Could not open file '%s'.\n", commandA->fileName);
+        int inFile = -1;
+        int outFile = -1;
+        if (commandA->inFileName != NULL) {
+            inFile = open(commandA->inFileName, O_RDONLY);
+            if (0 > inFile) {
+                fprintf(stderr, "Could not open file '%s'.\n", commandA->inFileName);
                 return;
             }
-            executeCommand(commandA->commandList, newFile, -1, -1,  envp);
-        } else {
-            int newFile = open(commandA->fileName, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
-            if (0 > newFile) {
-                fprintf(stderr, "Could not open file '%s'.\n", commandA->fileName);
-                return;
-            }
-            executeCommand(commandA->commandList, -1, newFile, -1, envp);
         }
+        if (commandA->outFileName != NULL) {
+            outFile = open(commandA->outFileName, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+            if (0 > outFile) {
+                fprintf(stderr, "Could not open file '%s'.\n", commandA->outFileName);
+                return;
+            }
+        }
+        executeCommand(commandA->commandList, -1, -1, -1, envp);
         wait(&exitCode);
     } else {
         int *files = malloc(sizeof(int) * 2);
         pipe(files);
         int inFileA = -1;
         int outFileB = -1;
-        if (commandA->type == crocoEatsStdIn) {
-            inFileA = open(commandA->fileName, O_RDONLY);
+        if (commandA->outFileName != NULL && commandB->inFileName != NULL) {
+            fprintf(stderr, "This combination of pipes and I/O redirection is not valid.\
+                    The I/O redirection will be ignored, but the pipe will be use.\n");
         }
-        if (commandB->type == crocoEatsStdOut) {
-            outFileB = open(commandA->fileName, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+        if (commandA->inFileName != NULL) {
+            inFileA = open(commandA->inFileName, O_RDONLY);
+        }
+        if (commandB->outFileName != NULL) {
+            outFileB = open(commandA->outFileName, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
         }
         pid_t pidA = executeCommand(commandA->commandList, inFileA, files[1], files[0], envp);
         pid_t pidB = executeCommand(commandB->commandList, files[0], outFileB, files[1], envp);
