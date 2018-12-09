@@ -78,22 +78,22 @@ croco_t *crocodile(char **arr) {
     croco_t *croco = malloc(sizeof(croco_t));
     croco->inFileName = NULL;
     croco->outFileName = NULL;
+    croco->commandList = arr;
     int i = 0;
     while (arr[i] != NULL) {
         if (strncmp(arr[i], "<", 1) == 0) {
             croco->inFileName = arr[i + 1];
+            free(arr[i]);
             arr[i] = NULL;
-            croco->commandList = arr;
             i++;
         } else if (strncmp(arr[i], ">", 1) == 0) {
             croco->outFileName = arr[i + 1];
+            free(arr[i]);
             arr[i] = NULL;
-            croco->commandList = arr;
             i++;
         }
         i++;
     }
-    croco->commandList = arr;
     return croco;
 }
 
@@ -199,7 +199,7 @@ void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]) {
             inFileA = open(commandA->inFileName, O_RDONLY);
         }
         if (commandB->outFileName != NULL) {
-            outFileB = open(commandA->outFileName, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+            outFileB = open(commandB->outFileName, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
         }
         pid_t pidA = executeCommand(commandA->commandList, inFileA, files[1], files[0], envp);
         pid_t pidB = executeCommand(commandB->commandList, files[0], outFileB, files[1], envp);
