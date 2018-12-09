@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include "parser.h"
+#include <sys/resource.h>
 
 #define FALSE 0
 #define TRUE !FALSE
@@ -15,12 +16,11 @@
  * This is a plumbus .|. it pipes pipes through pipes.
  */
 
-typedef enum { none = -1, crocoEatsStdIn = 0, crocoEatsStdOut = 1 } crocoType_t;
 
 typedef struct {
     char **commandList;
-    crocoType_t type;
-    char *fileName;
+    char *inFileName;
+    char *outFileName;
 } croco_t;
 
 char **list_to_array(list_t *list);
@@ -76,26 +76,24 @@ void knowExecute(char *path, char **argv, char *envp[]) {
 
 croco_t *crocodile(char **arr) {
     croco_t *croco = malloc(sizeof(croco_t));
+    croco->inFileName = NULL;
+    croco->outFileName = NULL;
     int i = 0;
     while (arr[i] != NULL) {
         if (strncmp(arr[i], "<", 1) == 0) {
-            croco->type = crocoEatsStdIn;
-            croco->fileName = arr[i + 1];
+            croco->inFileName = arr[i + 1];
             arr[i] = NULL;
             croco->commandList = arr;
-            return croco;
+            i++;
         } else if (strncmp(arr[i], ">", 1) == 0) {
-            croco->fileName = arr[i + 1];
+            croco->outFileName = arr[i + 1];
             arr[i] = NULL;
-            croco->type = crocoEatsStdOut;
             croco->commandList = arr;
-            return croco;
+            i++;
         }
         i++;
     }
-    croco->fileName = NULL;
     croco->commandList = arr;
-    croco->type = none;
     return croco;
 }
 
