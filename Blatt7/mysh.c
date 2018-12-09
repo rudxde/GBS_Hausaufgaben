@@ -146,7 +146,7 @@ pid_t executeCommand(char **args, int inFile, int outFile, int fileToClose, char
         }
         close(outFile);
     }
-    
+ 
     char *commandpath = args[0];
     // Explizite Kommandopfad Angabe
     if (strchr(commandpath, '/') != NULL) {
@@ -154,7 +154,7 @@ pid_t executeCommand(char **args, int inFile, int outFile, int fileToClose, char
     } else {
         tryExecute(args, envp);
     }
-    
+ 
     //this will never happen, but this line is necessary to keep the compiler from printing a warning
     return 0;
 }
@@ -184,8 +184,10 @@ void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]) {
                 return;
             }
         }
-        executeCommand(commandA->commandList, -1, -1, -1, envp);
+        executeCommand(commandA->commandList, inFile, outFile, -1, envp);
         wait(&exitCode);
+        close(inFile);
+        close(outFile);
     } else {
         int *files = malloc(sizeof(int) * 2);
         pipe(files);
@@ -200,6 +202,7 @@ void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]) {
         }
         if (commandB->outFileName != NULL) {
             outFileB = open(commandB->outFileName, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+            printf("outFileB: %d\n", outFileB);
         }
         pid_t pidA = executeCommand(commandA->commandList, inFileA, files[1], files[0], envp);
         pid_t pidB = executeCommand(commandB->commandList, files[0], outFileB, files[1], envp);
@@ -208,6 +211,8 @@ void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]) {
         waitpid(pidB, &exitCode, 0);
         close(files[0]);
         free(files);
+        close(inFileA);
+        close(outFileB);
     }
 }
 
