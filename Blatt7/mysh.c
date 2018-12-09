@@ -193,7 +193,7 @@ void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]) {
         pipe(files);
         int inFileA = -1;
         int outFileB = -1;
-        if (commandA->outFileName != NULL && commandB->inFileName != NULL) {
+        if (commandA->outFileName != NULL || commandB->inFileName != NULL) {
             fprintf(stderr, "This combination of pipes and I/O redirection is not valid.\
                     The I/O redirection will be ignored, but the pipe will be use.\n");
         }
