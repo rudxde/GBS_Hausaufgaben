@@ -172,12 +172,14 @@ void openFiles(croco_t *commandA, croco_t *commandB, char *envp[]) {
             int newFile = open(commandA->fileName, O_RDONLY);
             if (0 > newFile) {
                 fprintf(stderr, "Could not open file '%s'.\n", commandA->fileName);
+                return;
             }
             executeCommand(commandA->commandList, newFile, -1, envp);
         } else {
             int newFile = open(commandA->fileName, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
             if (0 > newFile) {
                 fprintf(stderr, "Could not open file '%s'.\n", commandA->fileName);
+                return;
             }
             executeCommand(commandA->commandList, -1, newFile, envp);
         }
